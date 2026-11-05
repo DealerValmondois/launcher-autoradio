@@ -2,10 +2,13 @@ package com.launcherautoradio;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -15,6 +18,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 
@@ -98,11 +104,7 @@ public class AppsActivity extends Activity {
                 tile.addView(label);
 
                 tile.setOnClickListener(v -> open(r));
-                // Long press shows the package name (needed to integrate another app's data).
-                tile.setOnLongClickListener(v -> {
-                    Toast.makeText(this, r.activityInfo.packageName, Toast.LENGTH_LONG).show();
-                    return true;
-                });
+                tile.setOnLongClickListener(v -> { exportApk(r); return true; });
                 GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
                 lp.width = tileW;
                 lp.height = tileH;
@@ -120,6 +122,25 @@ public class AppsActivity extends Activity {
         for (int p = 0; p < pageCount; p++) s.append(p == cur ? '●' : '○');
         dots.setText(pageCount > 1 ? s : "");
         dots.setContentDescription("Page " + (cur + 1) + " sur " + pageCount);
+    }
+
+    // Long press: show the package name and copy the app's APK to Downloads, to study how it shares its data.
+    void exportApk(ResolveInfo r) {
+        String pkg = r.activityInfo.packageName, msg = pkg;
+        if (Build.VERSION.SDK_INT >= 29) {
+            ContentValues cv = new ContentValues();
+            cv.put(MediaStore.Downloads.DISPLAY_NAME, pkg + ".apk");
+            try (InputStream in = new FileInputStream(r.activityInfo.applicationInfo.sourceDir);
+                 OutputStream out = getContentResolver().openOutputStream(
+                         getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv))) {
+                byte[] buf = new byte[65536];
+                for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+                msg += "\nCopiée dans Téléchargements/" + pkg + ".apk";
+            } catch (Exception e) {
+                msg += "\nCopie impossible : " + e.getMessage();
+            }
+        }
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
     }
 
     void open(ResolveInfo r) {
