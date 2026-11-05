@@ -24,6 +24,7 @@ public class SpeedGauge extends View {
     final Paint small = text(Color.parseColor("#94A3B8"), 13, false);
     final Paint unit = text(Color.parseColor("#94A3B8"), 18, false);
     final RectF oval = new RectF();
+    final int accent = Themes.accent(getContext());
     float shown, cx, cy, r;
     boolean hasFix;
     ValueAnimator anim;
@@ -68,7 +69,7 @@ public class SpeedGauge extends View {
         cy = stroke + r;
         oval.set(cx - r, cy - r, cx + r, cy + r);
         SweepGradient g = new SweepGradient(cx, cy,
-                new int[]{Color.parseColor("#1D4ED8"), Color.parseColor("#2F6FED"), Color.parseColor("#7DD3FC")},
+                new int[]{Themes.shade(accent, -.25f), accent, Themes.shade(accent, .5f)},
                 new float[]{0, SWEEP / 720, SWEEP / 360});
         Matrix m = new Matrix();
         m.setRotate(START, cx, cy);

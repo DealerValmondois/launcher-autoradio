@@ -20,6 +20,7 @@ public class TripActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle b) {
+        Themes.apply(this);
         super.onCreate(b);
         setContentView(R.layout.activity_trip);
         findViewById(R.id.back).setOnClickListener(v -> finish());

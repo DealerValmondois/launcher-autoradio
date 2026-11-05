@@ -32,6 +32,7 @@ public class AccelActivity extends Activity implements LocationListener {
 
     @Override
     protected void onCreate(Bundle b) {
+        Themes.apply(this);
         super.onCreate(b);
         setContentView(R.layout.activity_accel);
         lm = getSystemService(LocationManager.class);

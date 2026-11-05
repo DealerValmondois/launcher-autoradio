@@ -60,6 +60,7 @@ public class AppsActivity extends Activity {
     @SuppressLint("ClickableViewAccessibility") // swipe snapping only; tiles stay real clickable views
     @Override
     protected void onCreate(Bundle b) {
+        Themes.apply(this);
         super.onCreate(b);
         setContentView(R.layout.activity_apps);
         PackageManager pm = getPackageManager();

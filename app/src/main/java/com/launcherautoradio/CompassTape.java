@@ -33,7 +33,7 @@ public class CompassTape extends View {
         tick.setStrokeWidth(2 * dp);
         label.setTextAlign(Paint.Align.CENTER);
         label.setTextSize(18 * getResources().getDisplayMetrics().scaledDensity);
-        marker.setColor(Color.parseColor("#2F6FED"));
+        marker.setColor(Themes.accent(c));
         fade.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
         setLayerType(LAYER_TYPE_HARDWARE, null); // needed for the edge fade
         setContentDescription("Cap inconnu");
@@ -68,10 +68,10 @@ public class CompassTape extends View {
             float x = w / 2 + (a - shown) * px;
             int n = ((a % 360) + 360) % 360;
             boolean named = n % 45 == 0;
-            tick.setColor(Color.parseColor(n == 0 ? "#2F6FED" : "#94A3B8"));
+            tick.setColor(n == 0 ? marker.getColor() : Color.parseColor("#94A3B8"));
             c.drawLine(x, 14 * dp, x, (named ? 26 : 20) * dp, tick);
             if (named) {
-                label.setColor(Color.parseColor(n == 0 ? "#60A5FA" : "#E6EDF7"));
+                label.setColor(n == 0 ? Themes.shade(marker.getColor(), .35f) : Color.parseColor("#E6EDF7"));
                 label.setFakeBoldText(n % 90 == 0);
                 c.drawText(NAMES[n / 45], x, h - 6 * dp, label);
             }

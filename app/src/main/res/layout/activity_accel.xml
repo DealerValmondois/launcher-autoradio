@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
             android:text="0 – 100 km/h"
-            android:textColor="@color/accent"
+            android:textColor="?attr/accentColor"
             android:textSize="20sp"
             android:textStyle="bold" />
         <TextView

@@ -27,7 +27,7 @@ public class StopwatchDial extends View {
         num.setColor(Color.parseColor("#E6EDF7"));
         num.setTextAlign(Paint.Align.CENTER);
         num.setTextSize(20 * getResources().getDisplayMetrics().scaledDensity);
-        hand.setColor(Color.parseColor("#2F6FED"));
+        hand.setColor(Themes.accent(c));
         hand.setStrokeCap(Paint.Cap.ROUND);
         hand.setStrokeWidth(6 * dp);
         best.setColor(Color.parseColor("#F59E0B"));
