@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -210,6 +211,7 @@ public class MainActivity extends Activity implements LocationListener {
             try {
                 String src = getPackageManager().getApplicationInfo("com.can.activity", 0).sourceDir;
                 OutputStream dst;
+                File file = null;
                 if (Build.VERSION.SDK_INT >= 29) {
                     ContentValues cv = new ContentValues();
                     cv.put(MediaStore.Downloads.DISPLAY_NAME, "com.can.activity.apk");
@@ -217,12 +219,18 @@ public class MainActivity extends Activity implements LocationListener {
                 } else {
                     File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                     dir.mkdirs();
-                    dst = new FileOutputStream(new File(dir, "com.can.activity.apk"));
+                    file = new File(dir, "com.can.activity.apk");
+                    dst = new FileOutputStream(file);
                 }
+                long n;
                 try (InputStream in = new FileInputStream(src); OutputStream out = dst) {
-                    copy(in, out);
+                    n = copy(in, out);
+                    if (out instanceof FileOutputStream) ((FileOutputStream) out).getFD().sync();
                 }
-                msg = "Copiée dans Download/com.can.activity.apk\n(source : " + src + ")";
+                // Old Android only shows a new file's real size to other apps (and over USB) once it is indexed.
+                if (file != null) MediaScannerConnection.scanFile(this, new String[]{file.getPath()}, null, null);
+                msg = "Copiée : " + n / 1024 + " Ko sur " + new File(src).length() / 1024 + " Ko\nDans Download/com.can.activity.apk\nSource : " + src
+                        + "\nAndroid API " + Build.VERSION.SDK_INT;
             } catch (Throwable e) {
                 msg = "Échec de la copie : " + e;
             }
@@ -231,9 +239,11 @@ public class MainActivity extends Activity implements LocationListener {
         }).start();
     }
 
-    static void copy(InputStream in, OutputStream out) throws IOException {
+    static long copy(InputStream in, OutputStream out) throws IOException {
         byte[] buf = new byte[65536];
-        for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+        long total = 0;
+        for (int n; (n = in.read(buf)) > 0; total += n) out.write(buf, 0, n);
+        return total;
     }
 
     // Installer result: ask the user to confirm, or report a failure.
