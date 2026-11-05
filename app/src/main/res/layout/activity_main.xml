@@ -61,43 +61,38 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/now_playing"
+                android:text="VÉHICULE"
                 android:textColor="@color/accent"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08" />
-            <ImageView
-                android:id="@+id/art"
-                android:layout_width="140dp"
-                android:layout_height="140dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/art_bg"
-                android:clipToOutline="true"
-                android:importantForAccessibility="no" />
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:singleLine="true"
-                android:ellipsize="end"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/text" />
-            <TextView
-                android:id="@+id/artist"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:singleLine="true"
-                android:ellipsize="end"
-                android:textSize="17sp"
-                android:textColor="@color/muted" />
-            <Button
-                android:id="@+id/access"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/access"
+                android:orientation="horizontal"
+                android:baselineAligned="true">
+                <TextView
+                    android:id="@+id/speed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="—"
+                    android:textColor="@color/text"
+                    android:textSize="96sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="km/h"
+                    android:textColor="@color/muted"
+                    android:textSize="22sp" />
+            </LinearLayout>
+            <Button
+                android:id="@+id/loc_access"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/loc_access"
                 android:textAllCaps="false"
                 android:visibility="gone" />
             <View
@@ -107,32 +102,31 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center">
-                <ImageButton
-                    android:id="@+id/prev"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_prev"
-                    android:contentDescription="Précédent" />
-                <ImageButton
-                    android:id="@+id/play"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginEnd="24dp"
-                    android:background="@drawable/circle_accent"
-                    android:src="@drawable/ic_play"
-                    android:contentDescription="Lecture / pause" />
-                <ImageButton
-                    android:id="@+id/next"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_next"
-                    android:contentDescription="Suivant" />
+                android:orientation="horizontal">
+                <LinearLayout style="@style/Stat">
+                    <TextView style="@style/StatLabel" android:text="Cap" />
+                    <TextView android:id="@+id/heading" style="@style/StatValue" android:text="—" />
+                </LinearLayout>
+                <LinearLayout style="@style/Stat">
+                    <TextView style="@style/StatLabel" android:text="Trajet" />
+                    <TextView android:id="@+id/trip" style="@style/StatValue" />
+                </LinearLayout>
+                <LinearLayout style="@style/Stat">
+                    <TextView style="@style/StatLabel" android:text="Durée" />
+                    <Chronometer android:id="@+id/duration" style="@style/StatValue" />
+                </LinearLayout>
             </LinearLayout>
+            <Button
+                android:id="@+id/reset"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/tile"
+                android:text="Remettre le trajet à zéro"
+                android:textAllCaps="false"
+                android:textColor="@color/text"
+                android:textSize="18sp"
+                android:stateListAnimator="@null" />
         </LinearLayout>
 
         <GridLayout

@@ -1,90 +1,60 @@
 package com.launcherautoradio;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.content.pm.PackageInstaller;
 import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.ContentValues;
-import android.provider.MediaStore;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.media.AudioManager;
-import android.os.Build;
-import android.os.SystemClock;
-import android.view.KeyEvent;
-import android.graphics.Bitmap;
-import android.media.MediaMetadata;
-import android.media.session.MediaController;
-import android.media.session.MediaSessionManager;
-import android.media.session.PlaybackState;
+import android.content.pm.PackageInstaller;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.View;
-import android.widget.ImageButton;
-import android.widget.ImageView;
+import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.List;
+import java.util.Locale;
 
-public class MainActivity extends Activity {
-    // Tiles whose app the user picks; index = request code.
+public class MainActivity extends Activity implements LocationListener {
     static final String APK_URL = "https://github.com/DealerValmondois/launcher-autoradio/releases/download/latest/app-debug.apk";
+    // Tiles whose app the user picks; index = request code.
     static final String[] KEYS = {"carplay", "music", "phone"};
     static final int[] TILES = {R.id.tile_carplay, R.id.tile_music, R.id.tile_phone};
+    static final String[] DIRS = {"N", "NE", "E", "SE", "S", "SO", "O", "NO"};
 
-    MediaSessionManager msm;
-    ComponentName listener;
-    MediaController controller;
-    TextView title, artist;
-    ImageView art;
-    ImageButton play;
-    View access;
-    AudioManager am;
-    String bTitle, bArtist; // from legacy "metachanged" broadcasts, used when no media session exists
-
+    LocationManager lm;
+    Location last;
+    float tripMeters;
+    TextView speed, heading, trip;
+    Chronometer duration;
+    View locAccess;
     volatile boolean updating;
-
-    final BroadcastReceiver meta = new BroadcastReceiver() {
-        @Override public void onReceive(Context c, Intent i) {
-            if (i.hasExtra("track")) { bTitle = i.getStringExtra("track"); bArtist = i.getStringExtra("artist"); }
-            showMedia();
-        }
-    };
-
-    final MediaController.Callback cb = new MediaController.Callback() {
-        @Override public void onMetadataChanged(MediaMetadata m) { showMedia(); }
-        @Override public void onPlaybackStateChanged(PlaybackState s) { showMedia(); }
-        @Override public void onSessionDestroyed() { bind(null); }
-    };
-    final MediaSessionManager.OnActiveSessionsChangedListener sessions = this::bind;
 
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_main);
-        msm = getSystemService(MediaSessionManager.class);
-        listener = new ComponentName(this, MediaListener.class);
-        title = findViewById(R.id.title);
-        artist = findViewById(R.id.artist);
-        art = findViewById(R.id.art);
-        play = findViewById(R.id.play);
-        access = findViewById(R.id.access);
+        lm = getSystemService(LocationManager.class);
+        speed = findViewById(R.id.speed);
+        heading = findViewById(R.id.heading);
+        trip = findViewById(R.id.trip);
+        duration = findViewById(R.id.duration);
+        locAccess = findViewById(R.id.loc_access);
 
-        am = getSystemService(AudioManager.class);
         try { // show the build number so it's easy to tell which version is installed
             ((TextView) findViewById(R.id.update)).append(" · v" + getPackageManager().getPackageInfo(getPackageName(), 0).versionCode);
         } catch (Exception ignored) {}
         findViewById(R.id.update).setOnClickListener(v -> update());
-        findViewById(R.id.update).setOnLongClickListener(v -> { exportCanApk(); return true; });
+
         for (int i = 0; i < KEYS.length; i++) {
             final int k = i;
             findViewById(TILES[k]).setOnClickListener(v -> launch(k));
@@ -93,83 +63,94 @@ public class MainActivity extends Activity {
         findViewById(R.id.tile_nav).setOnClickListener(v -> open(new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="))));
         findViewById(R.id.tile_apps).setOnClickListener(v -> open(new Intent(this, AppsActivity.class)));
         findViewById(R.id.tile_settings).setOnClickListener(v -> open(new Intent(Settings.ACTION_SETTINGS)));
-        access.setOnClickListener(v -> open(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
+        findViewById(R.id.reset).setOnClickListener(v -> resetTrip());
+        locAccess.setOnClickListener(v -> askLocation());
 
-        findViewById(R.id.prev).setOnClickListener(v -> {
-            if (controller != null) controller.getTransportControls().skipToPrevious();
-            else mediaKey(KeyEvent.KEYCODE_MEDIA_PREVIOUS);
-        });
-        findViewById(R.id.next).setOnClickListener(v -> {
-            if (controller != null) controller.getTransportControls().skipToNext();
-            else mediaKey(KeyEvent.KEYCODE_MEDIA_NEXT);
-        });
-        play.setOnClickListener(v -> {
-            // some players ignore the play/pause toggle, so send an explicit key
-            if (controller == null) mediaKey(am.isMusicActive() ? KeyEvent.KEYCODE_MEDIA_PAUSE : KeyEvent.KEYCODE_MEDIA_PLAY);
-            else if (isPlaying()) controller.getTransportControls().pause();
-            else controller.getTransportControls().play();
-        });
+        resetTrip();
+        if (!startGps()) askLocation();
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        IntentFilter f = new IntentFilter("com.android.music.metachanged");
-        f.addAction("com.android.music.playstatechanged");
-        if (Build.VERSION.SDK_INT >= 33) registerReceiver(meta, f, Context.RECEIVER_EXPORTED);
-        else registerReceiver(meta, f);
-        try {
-            msm.addOnActiveSessionsChangedListener(sessions, listener);
-            bind(msm.getActiveSessions(listener));
-            access.setVisibility(View.GONE);
-        } catch (SecurityException e) { // notification access not granted yet
-            access.setVisibility(View.VISIBLE);
-            bind(null);
-        }
+    protected void onDestroy() {
+        super.onDestroy();
+        lm.removeUpdates(this);
+    }
+
+    // --- GPS: speed, heading, trip ---
+
+    void askLocation() {
+        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(meta);
-        msm.removeOnActiveSessionsChangedListener(sessions);
-        bind(null);
+    public void onRequestPermissionsResult(int req, String[] perms, int[] res) {
+        startGps();
     }
 
-    void bind(List<MediaController> list) {
-        if (controller != null) controller.unregisterCallback(cb);
-        controller = (list == null || list.isEmpty()) ? null : list.get(0);
-        if (controller != null) controller.registerCallback(cb);
-        showMedia();
+    // Listens for the whole life of the launcher so the trip keeps counting while CarPlay is in front.
+    boolean startGps() {
+        boolean ok = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        locAccess.setVisibility(ok ? View.GONE : View.VISIBLE);
+        // A crash here would lock the user out of their home screen, so a missing GPS only shows a message.
+        if (ok) try { lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this); }
+        catch (IllegalArgumentException e) { Toast.makeText(this, "GPS introuvable", Toast.LENGTH_LONG).show(); }
+        return ok;
     }
 
-    boolean isPlaying() {
-        if (controller == null) return am.isMusicActive();
-        PlaybackState s = controller.getPlaybackState();
-        return s != null && s.getState() == PlaybackState.STATE_PLAYING;
+    void resetTrip() {
+        tripMeters = 0;
+        last = null;
+        duration.setBase(SystemClock.elapsedRealtime());
+        duration.start();
+        showTrip();
     }
 
-    void showMedia() {
-        MediaMetadata m = controller == null ? null : controller.getMetadata();
-        Bitmap bmp = null;
-        if (m == null) {
-            if (bTitle != null) title.setText(bTitle); else title.setText(R.string.no_music);
-            artist.setText(bArtist);
-        } else {
-            title.setText(m.getString(MediaMetadata.METADATA_KEY_TITLE));
-            artist.setText(m.getString(MediaMetadata.METADATA_KEY_ARTIST));
-            bmp = m.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
-            if (bmp == null) bmp = m.getBitmap(MediaMetadata.METADATA_KEY_ART);
-        }
-        if (bmp != null) {
-            art.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            art.setImageBitmap(bmp);
-        } else {
-            art.setScaleType(ImageView.ScaleType.CENTER);
-            art.setImageResource(R.drawable.ic_music);
-        }
-        play.setImageResource(isPlaying() ? R.drawable.ic_pause : R.drawable.ic_play);
+    void showTrip() {
+        trip.setText(String.format(Locale.FRANCE, "%.1f km", tripMeters / 1000));
     }
+
+    @Override
+    public void onLocationChanged(Location l) {
+        float kmh = l.hasSpeed() ? l.getSpeed() * 3.6f : 0;
+        speed.setText(String.valueOf(Math.round(kmh)));
+        if (l.hasBearing() && kmh > 5) heading.setText(DIRS[Math.round(l.getBearing() / 45f) % 8]);
+        // Count distance only when moving with a decent fix, so GPS jitter while parked adds nothing.
+        if (last != null && kmh > 3 && l.getAccuracy() < 30) tripMeters += last.distanceTo(l);
+        last = l;
+        showTrip();
+    }
+
+    // Abstract before Android 11: implemented so older units don't crash when GPS is toggled.
+    @Override public void onProviderEnabled(String p) {}
+    @Override public void onProviderDisabled(String p) {}
+    @Override public void onStatusChanged(String p, int s, Bundle e) {}
+
+    // --- Tiles ---
+
+    void launch(int k) {
+        String pkg = getPreferences(MODE_PRIVATE).getString(KEYS[k], null);
+        Intent i = pkg == null ? null : getPackageManager().getLaunchIntentForPackage(pkg);
+        if (i == null) pick(k); else open(i);
+    }
+
+    void pick(int k) {
+        Toast.makeText(this, R.string.pick_app, Toast.LENGTH_LONG).show();
+        startActivityForResult(new Intent(this, AppsActivity.class).putExtra("pick", true), k);
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if (req >= 0 && req < KEYS.length && res == RESULT_OK && data != null)
+            getPreferences(MODE_PRIVATE).edit().putString(KEYS[req], data.getStringExtra("pkg")).apply();
+    }
+
+    void open(Intent i) {
+        try { startActivity(i); }
+        catch (ActivityNotFoundException e) { Toast.makeText(this, R.string.no_app, Toast.LENGTH_SHORT).show(); }
+    }
+
+    // --- Self update ---
 
     // Streams the latest APK straight into the system installer (DownloadManager is often missing on head units).
     void update() {
@@ -190,7 +171,7 @@ public class MainActivity extends Activity {
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE).getIntentSender());
                 session.close();
             } catch (Exception e) {
-                runOnUiThread(() -> Toast.makeText(this, "Échec de la mise à jour : " + e.getMessage(), Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, "Échec de la mise à jour : " + e, Toast.LENGTH_LONG).show());
             } finally {
                 updating = false;
             }
@@ -202,23 +183,6 @@ public class MainActivity extends Activity {
         for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
     }
 
-    // Copies the CAN-bus app's APK to Download/ so it can be analysed to find how it shares car data.
-    void exportCanApk() {
-        if (Build.VERSION.SDK_INT < 29) return;
-        try {
-            String src = getPackageManager().getApplicationInfo("com.can.activity", 0).sourceDir;
-            ContentValues v = new ContentValues();
-            v.put(MediaStore.Downloads.DISPLAY_NAME, "com.can.activity.apk");
-            Uri dst = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
-            try (InputStream in = new FileInputStream(src); OutputStream out = getContentResolver().openOutputStream(dst)) {
-                copy(in, out);
-            }
-            Toast.makeText(this, "Copié dans Download : com.can.activity.apk", Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "Échec : " + e, Toast.LENGTH_LONG).show();
-        }
-    }
-
     // Installer result: ask the user to confirm, or report a failure.
     @Override
     protected void onNewIntent(Intent i) {
@@ -228,36 +192,5 @@ public class MainActivity extends Activity {
         if (st == PackageInstaller.STATUS_PENDING_USER_ACTION) open((Intent) i.getParcelableExtra(Intent.EXTRA_INTENT));
         else if (st != PackageInstaller.STATUS_SUCCESS)
             Toast.makeText(this, "Échec : " + i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE), Toast.LENGTH_LONG).show();
-    }
-
-    void launch(int k) {
-        String pkg = getPreferences(MODE_PRIVATE).getString(KEYS[k], null);
-        Intent i = pkg == null ? null : getPackageManager().getLaunchIntentForPackage(pkg);
-        if (i == null) pick(k); else open(i);
-    }
-
-    void pick(int k) {
-        Toast.makeText(this, R.string.pick_app, Toast.LENGTH_LONG).show();
-        startActivityForResult(new Intent(this, AppsActivity.class).putExtra("pick", true), k);
-    }
-
-    @Override
-    protected void onActivityResult(int req, int res, Intent data) {
-        super.onActivityResult(req, res, data);
-        if (req >= 0 && req < KEYS.length && res == RESULT_OK && data != null)
-            getPreferences(MODE_PRIVATE).edit().putString(KEYS[req], data.getStringExtra("pkg")).apply();
-    }
-
-    // Fallback when the player exposes no media session: send a media key like the steering-wheel buttons.
-    void mediaKey(int code) {
-        long t = SystemClock.uptimeMillis();
-        am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_DOWN, code, 0));
-        am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_UP, code, 0));
-        play.postDelayed(this::showMedia, 500);
-    }
-
-    void open(Intent i) {
-        try { startActivity(i); }
-        catch (ActivityNotFoundException e) { Toast.makeText(this, R.string.no_app, Toast.LENGTH_SHORT).show(); }
     }
 }
