@@ -110,7 +110,8 @@ public class MainActivity extends Activity {
             else mediaKey(KeyEvent.KEYCODE_MEDIA_NEXT);
         });
         play.setOnClickListener(v -> {
-            if (controller == null) mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
+            // some players ignore the play/pause toggle, so send an explicit key
+            if (controller == null) mediaKey(am.isMusicActive() ? KeyEvent.KEYCODE_MEDIA_PAUSE : KeyEvent.KEYCODE_MEDIA_PLAY);
             else if (isPlaying()) controller.getTransportControls().pause();
             else controller.getTransportControls().play();
         });

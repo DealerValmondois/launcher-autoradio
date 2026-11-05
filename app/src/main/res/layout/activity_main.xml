@@ -142,12 +142,30 @@
             android:layout_marginStart="10dp"
             android:columnCount="3"
             android:rowCount="2">
-            <Button android:id="@+id/tile_carplay" style="@style/TileAccent" android:text="CarPlay" android:drawableTop="@drawable/ic_carplay" />
-            <Button android:id="@+id/tile_nav" style="@style/Tile" android:text="Navigation" android:drawableTop="@drawable/ic_nav" />
-            <Button android:id="@+id/tile_music" style="@style/Tile" android:text="Musique" android:drawableTop="@drawable/ic_music" />
-            <Button android:id="@+id/tile_phone" style="@style/Tile" android:text="Téléphone" android:drawableTop="@drawable/ic_phone" />
-            <Button android:id="@+id/tile_apps" style="@style/Tile" android:text="Applis" android:drawableTop="@drawable/ic_apps" />
-            <Button android:id="@+id/tile_settings" style="@style/Tile" android:text="Réglages" android:drawableTop="@drawable/ic_settings" />
+            <LinearLayout android:id="@+id/tile_carplay" style="@style/TileBoxAccent">
+                <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_carplay" android:importantForAccessibility="no" />
+                <TextView style="@style/TileLabelAccent" android:text="CarPlay" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/tile_nav" style="@style/TileBox">
+                <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_nav" android:importantForAccessibility="no" />
+                <TextView style="@style/TileLabel" android:text="Navigation" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/tile_music" style="@style/TileBox">
+                <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_music" android:importantForAccessibility="no" />
+                <TextView style="@style/TileLabel" android:text="Musique" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/tile_phone" style="@style/TileBox">
+                <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_phone" android:importantForAccessibility="no" />
+                <TextView style="@style/TileLabel" android:text="Téléphone" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/tile_apps" style="@style/TileBox">
+                <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_apps" android:importantForAccessibility="no" />
+                <TextView style="@style/TileLabel" android:text="Applis" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/tile_settings" style="@style/TileBox">
+                <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_settings" android:importantForAccessibility="no" />
+                <TextView style="@style/TileLabel" android:text="Réglages" />
+            </LinearLayout>
         </GridLayout>
     </LinearLayout>
 </LinearLayout>

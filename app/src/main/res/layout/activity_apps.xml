@@ -26,24 +26,34 @@
             android:stateListAnimator="@null" />
         <TextView
             android:id="@+id/header"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="24dp"
             android:textColor="@color/text"
             android:textSize="30sp"
             android:textStyle="bold" />
+        <TextView
+            android:id="@+id/dots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0.3"
+            android:textColor="@color/accent"
+            android:textSize="22sp" />
     </LinearLayout>
 
-    <GridView
-        android:id="@+id/grid"
+    <HorizontalScrollView
+        android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginTop="24dp"
-        android:numColumns="5"
-        android:stretchMode="columnWidth"
-        android:horizontalSpacing="20dp"
-        android:verticalSpacing="20dp"
         android:scrollbars="none"
-        android:listSelector="@android:color/transparent" />
+        android:overScrollMode="never">
+        <LinearLayout
+            android:id="@+id/pages"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
 </LinearLayout>
