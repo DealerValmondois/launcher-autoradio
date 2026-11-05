@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="28dp"
+    android:background="@color/bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <TextClock
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format24Hour="HH:mm"
+            android:format12Hour="HH:mm"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            android:textColor="@color/text" />
+        <TextClock
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:format24Hour="EEEE d MMMM"
+            android:format12Hour="EEEE d MMMM"
+            android:textSize="18sp"
+            android:textColor="@color/muted" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="380dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:background="@drawable/card">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/now_playing"
+                android:textColor="@color/accent"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
+            <ImageView
+                android:id="@+id/art"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/art_bg"
+                android:clipToOutline="true"
+                android:importantForAccessibility="no" />
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/text" />
+            <TextView
+                android:id="@+id/artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textSize="17sp"
+                android:textColor="@color/muted" />
+            <Button
+                android:id="@+id/access"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/access"
+                android:textAllCaps="false"
+                android:visibility="gone" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+                <ImageButton
+                    android:id="@+id/prev"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_prev"
+                    android:contentDescription="Précédent" />
+                <ImageButton
+                    android:id="@+id/play"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/circle_accent"
+                    android:src="@drawable/ic_play"
+                    android:contentDescription="Lecture / pause" />
+                <ImageButton
+                    android:id="@+id/next"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_next"
+                    android:contentDescription="Suivant" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <GridLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:columnCount="3"
+            android:rowCount="2">
+            <Button android:id="@+id/tile_carplay" style="@style/TileAccent" android:text="CarPlay" android:drawableTop="@drawable/ic_carplay" />
+            <Button android:id="@+id/tile_nav" style="@style/Tile" android:text="Navigation" android:drawableTop="@drawable/ic_nav" />
+            <Button android:id="@+id/tile_music" style="@style/Tile" android:text="Musique" android:drawableTop="@drawable/ic_music" />
+            <Button android:id="@+id/tile_phone" style="@style/Tile" android:text="Téléphone" android:drawableTop="@drawable/ic_phone" />
+            <Button android:id="@+id/tile_apps" style="@style/Tile" android:text="Applis" android:drawableTop="@drawable/ic_apps" />
+            <Button android:id="@+id/tile_settings" style="@style/Tile" android:text="Réglages" android:drawableTop="@drawable/ic_settings" />
+        </GridLayout>
+    </LinearLayout>
+</LinearLayout>
