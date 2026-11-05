@@ -2,8 +2,15 @@ package com.launcherautoradio;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.media.AudioManager;
+import android.os.Build;
+import android.os.SystemClock;
+import android.view.KeyEvent;
 import android.graphics.Bitmap;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
@@ -20,7 +27,9 @@ import android.widget.Toast;
 import java.util.List;
 
 public class MainActivity extends Activity {
-    static final int PICK_CARPLAY = 1;
+    // Tiles whose app the user picks; index = request code.
+    static final String[] KEYS = {"carplay", "music", "phone"};
+    static final int[] TILES = {R.id.tile_carplay, R.id.tile_music, R.id.tile_phone};
 
     MediaSessionManager msm;
     ComponentName listener;
@@ -29,6 +38,15 @@ public class MainActivity extends Activity {
     ImageView art;
     ImageButton play;
     View access;
+    AudioManager am;
+    String bTitle, bArtist; // from legacy "metachanged" broadcasts, used when no media session exists
+
+    final BroadcastReceiver meta = new BroadcastReceiver() {
+        @Override public void onReceive(Context c, Intent i) {
+            if (i.hasExtra("track")) { bTitle = i.getStringExtra("track"); bArtist = i.getStringExtra("artist"); }
+            showMedia();
+        }
+    };
 
     final MediaController.Callback cb = new MediaController.Callback() {
         @Override public void onMetadataChanged(MediaMetadata m) { showMedia(); }
@@ -49,20 +67,28 @@ public class MainActivity extends Activity {
         play = findViewById(R.id.play);
         access = findViewById(R.id.access);
 
-        findViewById(R.id.tile_carplay).setOnClickListener(v -> launchCarPlay());
-        findViewById(R.id.tile_carplay).setOnLongClickListener(v -> { pickCarPlay(); return true; });
+        am = getSystemService(AudioManager.class);
+        for (int i = 0; i < KEYS.length; i++) {
+            final int k = i;
+            findViewById(TILES[k]).setOnClickListener(v -> launch(k));
+            findViewById(TILES[k]).setOnLongClickListener(v -> { pick(k); return true; });
+        }
         findViewById(R.id.tile_nav).setOnClickListener(v -> open(new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="))));
-        findViewById(R.id.tile_music).setOnClickListener(v -> open(Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_MUSIC)));
-        findViewById(R.id.tile_phone).setOnClickListener(v -> open(new Intent(Intent.ACTION_DIAL)));
         findViewById(R.id.tile_apps).setOnClickListener(v -> open(new Intent(this, AppsActivity.class)));
         findViewById(R.id.tile_settings).setOnClickListener(v -> open(new Intent(Settings.ACTION_SETTINGS)));
         access.setOnClickListener(v -> open(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
 
-        findViewById(R.id.prev).setOnClickListener(v -> { if (controller != null) controller.getTransportControls().skipToPrevious(); });
-        findViewById(R.id.next).setOnClickListener(v -> { if (controller != null) controller.getTransportControls().skipToNext(); });
+        findViewById(R.id.prev).setOnClickListener(v -> {
+            if (controller != null) controller.getTransportControls().skipToPrevious();
+            else mediaKey(KeyEvent.KEYCODE_MEDIA_PREVIOUS);
+        });
+        findViewById(R.id.next).setOnClickListener(v -> {
+            if (controller != null) controller.getTransportControls().skipToNext();
+            else mediaKey(KeyEvent.KEYCODE_MEDIA_NEXT);
+        });
         play.setOnClickListener(v -> {
-            if (controller == null) return;
-            if (isPlaying()) controller.getTransportControls().pause();
+            if (controller == null) mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
+            else if (isPlaying()) controller.getTransportControls().pause();
             else controller.getTransportControls().play();
         });
     }
@@ -70,6 +96,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        IntentFilter f = new IntentFilter("com.android.music.metachanged");
+        f.addAction("com.android.music.playstatechanged");
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(meta, f, Context.RECEIVER_EXPORTED);
+        else registerReceiver(meta, f);
         try {
             msm.addOnActiveSessionsChangedListener(sessions, listener);
             bind(msm.getActiveSessions(listener));
@@ -83,6 +113,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        unregisterReceiver(meta);
         msm.removeOnActiveSessionsChangedListener(sessions);
         bind(null);
     }
@@ -95,7 +126,8 @@ public class MainActivity extends Activity {
     }
 
     boolean isPlaying() {
-        PlaybackState s = controller == null ? null : controller.getPlaybackState();
+        if (controller == null) return am.isMusicActive();
+        PlaybackState s = controller.getPlaybackState();
         return s != null && s.getState() == PlaybackState.STATE_PLAYING;
     }
 
@@ -103,8 +135,8 @@ public class MainActivity extends Activity {
         MediaMetadata m = controller == null ? null : controller.getMetadata();
         Bitmap bmp = null;
         if (m == null) {
-            title.setText(R.string.no_music);
-            artist.setText("");
+            if (bTitle != null) title.setText(bTitle); else title.setText(R.string.no_music);
+            artist.setText(bArtist);
         } else {
             title.setText(m.getString(MediaMetadata.METADATA_KEY_TITLE));
             artist.setText(m.getString(MediaMetadata.METADATA_KEY_ARTIST));
@@ -121,22 +153,30 @@ public class MainActivity extends Activity {
         play.setImageResource(isPlaying() ? R.drawable.ic_pause : R.drawable.ic_play);
     }
 
-    void launchCarPlay() {
-        String pkg = getPreferences(MODE_PRIVATE).getString("carplay", null);
+    void launch(int k) {
+        String pkg = getPreferences(MODE_PRIVATE).getString(KEYS[k], null);
         Intent i = pkg == null ? null : getPackageManager().getLaunchIntentForPackage(pkg);
-        if (i == null) pickCarPlay(); else open(i);
+        if (i == null) pick(k); else open(i);
     }
 
-    void pickCarPlay() {
-        Toast.makeText(this, R.string.pick_carplay, Toast.LENGTH_LONG).show();
-        startActivityForResult(new Intent(this, AppsActivity.class).putExtra("pick", true), PICK_CARPLAY);
+    void pick(int k) {
+        Toast.makeText(this, R.string.pick_app, Toast.LENGTH_LONG).show();
+        startActivityForResult(new Intent(this, AppsActivity.class).putExtra("pick", true), k);
     }
 
     @Override
     protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
-        if (req == PICK_CARPLAY && res == RESULT_OK && data != null)
-            getPreferences(MODE_PRIVATE).edit().putString("carplay", data.getStringExtra("pkg")).apply();
+        if (req >= 0 && req < KEYS.length && res == RESULT_OK && data != null)
+            getPreferences(MODE_PRIVATE).edit().putString(KEYS[req], data.getStringExtra("pkg")).apply();
+    }
+
+    // Fallback when the player exposes no media session: send a media key like the steering-wheel buttons.
+    void mediaKey(int code) {
+        long t = SystemClock.uptimeMillis();
+        am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_DOWN, code, 0));
+        am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_UP, code, 0));
+        play.postDelayed(this::showMedia, 500);
     }
 
     void open(Intent i) {

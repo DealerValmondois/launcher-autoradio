@@ -9,7 +9,7 @@
     <string name="no_music">Aucune musique</string>
     <string name="now_playing">EN LECTURE</string>
     <string name="access">Autoriser l\'affichage de la musique</string>
-    <string name="pick_carplay">Choisis l\'appli CarPlay (appui long pour changer)</string>
+    <string name="pick_app">Choisis l\'appli (appui long sur la tuile pour changer)</string>
     <string name="no_app">Aucune appli trouvée</string>
 
     <style name="Theme.Launcher" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
