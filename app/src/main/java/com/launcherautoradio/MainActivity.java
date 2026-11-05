@@ -12,7 +12,9 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -20,7 +22,9 @@ import android.view.View;
 import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -194,15 +198,28 @@ public class MainActivity extends Activity implements LocationListener {
 
     // shortcut: temporary button to grab the CAN-bus app for analysis, remove once its data is wired in.
     void copyCanApk() {
-        Toast.makeText(this, "Tentative de copie…", Toast.LENGTH_SHORT).show();
+        // Old Android (no MediaStore.Downloads) writes straight to Download/, which needs the storage permission.
+        if (Build.VERSION.SDK_INT < 29 && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            Toast.makeText(this, "Autorise l'accès au stockage puis réappuie sur le bouton", Toast.LENGTH_LONG).show();
+            return;
+        }
+        Toast.makeText(this, "Tentative de copie… (Android API " + Build.VERSION.SDK_INT + ")", Toast.LENGTH_SHORT).show();
         new Thread(() -> {
             String msg;
             try {
                 String src = getPackageManager().getApplicationInfo("com.can.activity", 0).sourceDir;
-                ContentValues cv = new ContentValues();
-                cv.put(MediaStore.Downloads.DISPLAY_NAME, "com.can.activity.apk");
-                Uri dst = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv);
-                try (InputStream in = new FileInputStream(src); OutputStream out = getContentResolver().openOutputStream(dst)) {
+                OutputStream dst;
+                if (Build.VERSION.SDK_INT >= 29) {
+                    ContentValues cv = new ContentValues();
+                    cv.put(MediaStore.Downloads.DISPLAY_NAME, "com.can.activity.apk");
+                    dst = getContentResolver().openOutputStream(getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv));
+                } else {
+                    File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    dir.mkdirs();
+                    dst = new FileOutputStream(new File(dir, "com.can.activity.apk"));
+                }
+                try (InputStream in = new FileInputStream(src); OutputStream out = dst) {
                     copy(in, out);
                 }
                 msg = "Copiée dans Download/com.can.activity.apk\n(source : " + src + ")";
