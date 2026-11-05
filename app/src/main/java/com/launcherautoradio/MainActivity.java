@@ -1,6 +1,7 @@
 package com.launcherautoradio;
 
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -24,10 +25,13 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.io.File;
 import java.util.List;
 
 public class MainActivity extends Activity {
     // Tiles whose app the user picks; index = request code.
+    static final String APK_URL = "https://github.com/DealerValmondois/launcher-autoradio/releases/download/latest/app-debug.apk";
+    static final String APK_MIME = "application/vnd.android.package-archive";
     static final String[] KEYS = {"carplay", "music", "phone"};
     static final int[] TILES = {R.id.tile_carplay, R.id.tile_music, R.id.tile_phone};
 
@@ -40,6 +44,20 @@ public class MainActivity extends Activity {
     View access;
     AudioManager am;
     String bTitle, bArtist; // from legacy "metachanged" broadcasts, used when no media session exists
+
+    DownloadManager dm;
+    long downloadId = -1;
+
+    final BroadcastReceiver downloaded = new BroadcastReceiver() {
+        @Override public void onReceive(Context c, Intent i) {
+            if (i.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -2) != downloadId) return;
+            Uri apk = dm.getUriForDownloadedFile(downloadId); // null if the download failed
+            downloadId = -1;
+            if (apk == null) { Toast.makeText(c, "Échec du téléchargement", Toast.LENGTH_LONG).show(); return; }
+            open(new Intent(Intent.ACTION_VIEW).setDataAndType(apk, APK_MIME)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK));
+        }
+    };
 
     final BroadcastReceiver meta = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
@@ -68,6 +86,11 @@ public class MainActivity extends Activity {
         access = findViewById(R.id.access);
 
         am = getSystemService(AudioManager.class);
+        dm = getSystemService(DownloadManager.class);
+        IntentFilter done = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(downloaded, done, Context.RECEIVER_EXPORTED);
+        else registerReceiver(downloaded, done);
+        findViewById(R.id.update).setOnClickListener(v -> update());
         for (int i = 0; i < KEYS.length; i++) {
             final int k = i;
             findViewById(TILES[k]).setOnClickListener(v -> launch(k));
@@ -151,6 +174,22 @@ public class MainActivity extends Activity {
             art.setImageResource(R.drawable.ic_music);
         }
         play.setImageResource(isPlaying() ? R.drawable.ic_pause : R.drawable.ic_play);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(downloaded);
+    }
+
+    void update() {
+        if (downloadId != -1) return; // already downloading
+        new File(getExternalFilesDir(null), "update.apk").delete();
+        downloadId = dm.enqueue(new DownloadManager.Request(Uri.parse(APK_URL))
+                .setMimeType(APK_MIME)
+                .setTitle("Launcher Auto")
+                .setDestinationInExternalFilesDir(this, null, "update.apk"));
+        Toast.makeText(this, "Téléchargement de la mise à jour…", Toast.LENGTH_LONG).show();
     }
 
     void launch(int k) {

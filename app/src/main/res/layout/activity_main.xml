@@ -27,6 +27,22 @@
             android:format12Hour="EEEE d MMMM"
             android:textSize="18sp"
             android:textColor="@color/muted" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+        <Button
+            android:id="@+id/update"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/tile"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:text="Mettre à jour"
+            android:textAllCaps="false"
+            android:textColor="@color/text"
+            android:textSize="18sp"
+            android:stateListAnimator="@null" />
     </LinearLayout>
 
     <LinearLayout

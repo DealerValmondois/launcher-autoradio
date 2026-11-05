@@ -7,7 +7,7 @@ android {
         applicationId 'com.launcherautoradio'
         minSdk 24
         targetSdk 34
-        versionCode 1
+        versionCode((System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger())
         versionName '0.1'
     }
     // Fixed key so each new APK installs over the previous one.
