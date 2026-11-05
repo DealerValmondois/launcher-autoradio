@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="28dp"
-    android:background="@color/bg">
+    android:background="?attr/bgColor">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -44,11 +44,34 @@
         android:textStyle="bold"
         android:letterSpacing="0.08" />
     <LinearLayout
-        android:id="@+id/swatches"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="80dp"
         android:layout_marginTop="16dp"
-        android:orientation="horizontal" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <SeekBar
+            android:id="@+id/hue"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:max="23"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:contentDescription="Teinte" />
+        <View
+            android:id="@+id/preview"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginStart="24dp"
+            android:background="@drawable/tile_accent" />
+    </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Glisse pour choisir, le reste des couleurs s'adapte tout seul"
+        android:textColor="@color/muted"
+        android:textSize="16sp" />
 
     <View
         android:layout_width="match_parent"

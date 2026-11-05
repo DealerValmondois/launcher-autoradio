@@ -8,10 +8,9 @@ import android.content.pm.PackageInstaller;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.view.Gravity;
+import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.SeekBar;
 import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,40 +39,27 @@ public class SettingsActivity extends Activity {
         } catch (Exception ignored) {}
         update.setOnClickListener(v -> update());
 
-        float dp = getResources().getDisplayMetrics().density;
-        LinearLayout row = findViewById(R.id.swatches);
-        int current = Themes.index(this);
-        for (int i = 0; i < Themes.COLORS.length; i++) {
-            final int k = i;
-            LinearLayout cell = new LinearLayout(this);
-            cell.setOrientation(LinearLayout.VERTICAL);
-            cell.setGravity(Gravity.CENTER_HORIZONTAL);
-
-            GradientDrawable dot = new GradientDrawable();
-            dot.setShape(GradientDrawable.OVAL);
-            dot.setColor(Themes.COLORS[i]);
-            if (i == current) dot.setStroke((int) (4 * dp), getColor(R.color.text));
-            Button swatch = new Button(this);
-            swatch.setBackground(dot);
-            swatch.setStateListAnimator(null);
-            swatch.setText(i == current ? "✓" : "");
-            swatch.setTextColor(0xFFFFFFFF);
-            swatch.setTextSize(28);
-            swatch.setContentDescription(Themes.NAMES[i] + (i == current ? ", sélectionné" : ""));
-            swatch.setOnClickListener(v -> { Themes.set(this, k); recreate(); });
-            cell.addView(swatch, new LinearLayout.LayoutParams((int) (80 * dp), (int) (80 * dp)));
-
-            TextView name = new TextView(this);
-            name.setText(Themes.NAMES[i]);
-            name.setTextColor(getColor(i == current ? R.color.text : R.color.muted));
-            name.setTextSize(18);
-            name.setPadding(0, (int) (8 * dp), 0, 0);
-            name.setImportantForAccessibility(TextView.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            cell.addView(name);
-
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
-            row.addView(cell, lp);
-        }
+        // Rainbow track built from the real accents of the 24 themes; the theme switches when the finger lifts.
+        int[] rainbow = new int[Themes.HUES];
+        for (int i = 0; i < Themes.HUES; i++) rainbow[i] = Themes.accentOf(this, i);
+        GradientDrawable track = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, rainbow);
+        track.setCornerRadius(16 * getResources().getDisplayMetrics().density);
+        SeekBar hue = findViewById(R.id.hue);
+        View preview = findViewById(R.id.preview);
+        hue.setProgressDrawable(track);
+        hue.setProgress(Themes.index(this));
+        hue.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar s, int p, boolean user) {
+                preview.getBackground().mutate().setTint(rainbow[p]);
+            }
+            @Override public void onStartTrackingTouch(SeekBar s) {}
+            @Override public void onStopTrackingTouch(SeekBar s) {
+                if (s.getProgress() != Themes.index(SettingsActivity.this)) {
+                    Themes.set(SettingsActivity.this, s.getProgress());
+                    recreate();
+                }
+            }
+        });
     }
 
     // Streams the latest APK straight into the system installer (DownloadManager is often missing on head units).

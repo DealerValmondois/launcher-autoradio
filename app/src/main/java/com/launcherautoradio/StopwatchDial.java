@@ -22,7 +22,7 @@ public class StopwatchDial extends View {
 
     public StopwatchDial(Context c, AttributeSet a) {
         super(c, a);
-        face.setColor(Color.parseColor("#141C2E"));
+        face.setColor(Themes.attr(c, R.attr.cardColor));
         tick.setColor(Color.parseColor("#94A3B8"));
         num.setColor(Color.parseColor("#E6EDF7"));
         num.setTextAlign(Paint.Align.CENTER);

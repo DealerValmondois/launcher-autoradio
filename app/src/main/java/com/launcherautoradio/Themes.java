@@ -5,28 +5,39 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 
-// Accent colour themes. Each activity calls apply() before super.onCreate(); views read accent().
+// Colour themes: 24 hues 15° apart (res/values/themes.xml). Each activity calls apply() before
+// super.onCreate(); accent, background, cards and borders all follow the chosen hue.
 final class Themes {
-    static final String[] NAMES = {"Bleu", "Rouge", "Vert", "Orange", "Violet", "Cyan"};
-    static final int[] STYLES = {R.style.Theme_Launcher, R.style.Theme_Launcher_Red, R.style.Theme_Launcher_Green,
-            R.style.Theme_Launcher_Orange, R.style.Theme_Launcher_Purple, R.style.Theme_Launcher_Cyan};
-    // Same values as the themes; dark enough for white text on an accent tile.
-    static final int[] COLORS = {0xFF2F6FED, 0xFFD13438, 0xFF218358, 0xFFD9480F, 0xFF7C3AED, 0xFF0369A1};
+    static final int HUES = 24, DEFAULT = 15; // 225° = the original blue
 
     static int index(Context c) {
-        int i = c.getSharedPreferences("theme", Context.MODE_PRIVATE).getInt("accent", 0);
-        return i >= 0 && i < STYLES.length ? i : 0;
+        int i = c.getSharedPreferences("theme", Context.MODE_PRIVATE).getInt("hue", DEFAULT);
+        return i >= 0 && i < HUES ? i : DEFAULT;
     }
 
     static void set(Context c, int i) {
-        c.getSharedPreferences("theme", Context.MODE_PRIVATE).edit().putInt("accent", i).apply();
+        c.getSharedPreferences("theme", Context.MODE_PRIVATE).edit().putInt("hue", i).apply();
     }
 
-    static void apply(Activity a) { a.setTheme(STYLES[index(a)]); }
+    static int style(Context c, int i) {
+        return c.getResources().getIdentifier("Theme.Launcher.H" + i, "style", c.getPackageName());
+    }
 
-    static int accent(Context c) {
-        TypedArray t = c.obtainStyledAttributes(new int[]{R.attr.accentColor});
-        int color = t.getColor(0, COLORS[0]);
+    static void apply(Activity a) { a.setTheme(style(a, index(a))); }
+
+    static int attr(Context c, int attr) {
+        TypedArray t = c.obtainStyledAttributes(new int[]{attr});
+        int color = t.getColor(0, Color.GRAY);
+        t.recycle();
+        return color;
+    }
+
+    static int accent(Context c) { return attr(c, R.attr.accentColor); }
+
+    // Accent of any hue, read from its style so the slider shows exactly what each theme gives.
+    static int accentOf(Context c, int i) {
+        TypedArray t = c.obtainStyledAttributes(style(c, i), new int[]{R.attr.accentColor});
+        int color = t.getColor(0, Color.GRAY);
         t.recycle();
         return color;
     }

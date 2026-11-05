@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="bg">#0B1220</color>
-    <color name="card">#141C2E</color>
     <color name="text">#E6EDF7</color>
     <color name="muted">#94A3B8</color>
 
@@ -12,13 +11,12 @@
     <style name="Theme.Launcher" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
         <item name="android:windowBackground">@color/bg</item>
         <item name="accentColor">#2F6FED</item>
+        <item name="bgColor">#0B1220</item>
+        <item name="cardColor">#141C2E</item>
+        <item name="strokeColor">#22304D</item>
+        <item name="trackColor">#1E2A44</item>
         <item name="android:colorAccent">#2F6FED</item>
     </style>
-    <style name="Theme.Launcher.Red"><item name="accentColor">#D13438</item><item name="android:colorAccent">#D13438</item></style>
-    <style name="Theme.Launcher.Green"><item name="accentColor">#218358</item><item name="android:colorAccent">#218358</item></style>
-    <style name="Theme.Launcher.Orange"><item name="accentColor">#D9480F</item><item name="android:colorAccent">#D9480F</item></style>
-    <style name="Theme.Launcher.Purple"><item name="accentColor">#7C3AED</item><item name="android:colorAccent">#7C3AED</item></style>
-    <style name="Theme.Launcher.Cyan"><item name="accentColor">#0369A1</item><item name="android:colorAccent">#0369A1</item></style>
 
     <style name="Stat">
         <item name="android:layout_width">0dp</item>

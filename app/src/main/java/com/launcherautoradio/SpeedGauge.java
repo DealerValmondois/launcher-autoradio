@@ -17,7 +17,7 @@ public class SpeedGauge extends View {
 
     final float dp = getResources().getDisplayMetrics().density;
     final float stroke = 14 * dp;
-    final Paint track = stroke(Color.parseColor("#1E2A44"), stroke);
+    final Paint track = stroke(Themes.attr(getContext(), R.attr.trackColor), stroke);
     final Paint arc = stroke(Color.WHITE, stroke);
     final Paint tick = stroke(Color.parseColor("#94A3B8"), 2 * dp);
     final Paint big = text(Color.parseColor("#E6EDF7"), 72, true);

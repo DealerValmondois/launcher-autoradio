@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 24 hues, 15° apart. Generated: accent darkened until white text reaches 3.6:1. -->
+<resources>
+    <style name="Theme.Launcher.H0">
+        <item name="accentColor">#E03838</item>
+        <item name="android:colorAccent">#E03838</item>
+        <item name="bgColor">#200D0D</item>
+        <item name="android:windowBackground">#200D0D</item>
+        <item name="cardColor">#2E1515</item>
+        <item name="strokeColor">#4C2626</item>
+        <item name="trackColor">#452222</item>
+    </style>
+    <style name="Theme.Launcher.H1">
+        <item name="accentColor">#DB6037</item>
+        <item name="android:colorAccent">#DB6037</item>
+        <item name="bgColor">#20120D</item>
+        <item name="android:windowBackground">#20120D</item>
+        <item name="cardColor">#2E1B15</item>
+        <item name="strokeColor">#4C3026</item>
+        <item name="trackColor">#452B22</item>
+    </style>
+    <style name="Theme.Launcher.H2">
+        <item name="accentColor">#BD762F</item>
+        <item name="android:colorAccent">#BD762F</item>
+        <item name="bgColor">#20160D</item>
+        <item name="android:windowBackground">#20160D</item>
+        <item name="cardColor">#2E2115</item>
+        <item name="strokeColor">#4C3926</item>
+        <item name="trackColor">#453422</item>
+    </style>
+    <style name="Theme.Launcher.H3">
+        <item name="accentColor">#A18328</item>
+        <item name="android:colorAccent">#A18328</item>
+        <item name="bgColor">#201B0D</item>
+        <item name="android:windowBackground">#201B0D</item>
+        <item name="cardColor">#2E2815</item>
+        <item name="strokeColor">#4C4326</item>
+        <item name="trackColor">#453C22</item>
+    </style>
+    <style name="Theme.Launcher.H4">
+        <item name="accentColor">#8A8A22</item>
+        <item name="android:colorAccent">#8A8A22</item>
+        <item name="bgColor">#20200D</item>
+        <item name="android:windowBackground">#20200D</item>
+        <item name="cardColor">#2E2E15</item>
+        <item name="strokeColor">#4C4C26</item>
+        <item name="trackColor">#454522</item>
+    </style>
+    <style name="Theme.Launcher.H5">
+        <item name="accentColor">#748F24</item>
+        <item name="android:colorAccent">#748F24</item>
+        <item name="bgColor">#1B200D</item>
+        <item name="android:windowBackground">#1B200D</item>
+        <item name="cardColor">#282E15</item>
+        <item name="strokeColor">#434C26</item>
+        <item name="trackColor">#3C4522</item>
+    </style>
+    <style name="Theme.Launcher.H6">
+        <item name="accentColor">#5C9425</item>
+        <item name="android:colorAccent">#5C9425</item>
+        <item name="bgColor">#16200D</item>
+        <item name="android:windowBackground">#16200D</item>
+        <item name="cardColor">#212E15</item>
+        <item name="strokeColor">#394C26</item>
+        <item name="trackColor">#344522</item>
+    </style>
+    <style name="Theme.Launcher.H7">
+        <item name="accentColor">#439926</item>
+        <item name="android:colorAccent">#439926</item>
+        <item name="bgColor">#12200D</item>
+        <item name="android:windowBackground">#12200D</item>
+        <item name="cardColor">#1B2E15</item>
+        <item name="strokeColor">#304C26</item>
+        <item name="trackColor">#2B4522</item>
+    </style>
+    <style name="Theme.Launcher.H8">
+        <item name="accentColor">#269926</item>
+        <item name="android:colorAccent">#269926</item>
+        <item name="bgColor">#0D200D</item>
+        <item name="android:windowBackground">#0D200D</item>
+        <item name="cardColor">#152E15</item>
+        <item name="strokeColor">#264C26</item>
+        <item name="trackColor">#224522</item>
+    </style>
+    <style name="Theme.Launcher.H9">
+        <item name="accentColor">#269943</item>
+        <item name="android:colorAccent">#269943</item>
+        <item name="bgColor">#0D2012</item>
+        <item name="android:windowBackground">#0D2012</item>
+        <item name="cardColor">#152E1B</item>
+        <item name="strokeColor">#264C30</item>
+        <item name="trackColor">#22452B</item>
+    </style>
+    <style name="Theme.Launcher.H10">
+        <item name="accentColor">#269960</item>
+        <item name="android:colorAccent">#269960</item>
+        <item name="bgColor">#0D2016</item>
+        <item name="android:windowBackground">#0D2016</item>
+        <item name="cardColor">#152E21</item>
+        <item name="strokeColor">#264C39</item>
+        <item name="trackColor">#224534</item>
+    </style>
+    <style name="Theme.Launcher.H11">
+        <item name="accentColor">#26967A</item>
+        <item name="android:colorAccent">#26967A</item>
+        <item name="bgColor">#0D201B</item>
+        <item name="android:windowBackground">#0D201B</item>
+        <item name="cardColor">#152E28</item>
+        <item name="strokeColor">#264C43</item>
+        <item name="trackColor">#22453C</item>
+    </style>
+    <style name="Theme.Launcher.H12">
+        <item name="accentColor">#259494</item>
+        <item name="android:colorAccent">#259494</item>
+        <item name="bgColor">#0D2020</item>
+        <item name="android:windowBackground">#0D2020</item>
+        <item name="cardColor">#152E2E</item>
+        <item name="strokeColor">#264C4C</item>
+        <item name="trackColor">#224545</item>
+    </style>
+    <style name="Theme.Launcher.H13">
+        <item name="accentColor">#2D91B2</item>
+        <item name="android:colorAccent">#2D91B2</item>
+        <item name="bgColor">#0D1B20</item>
+        <item name="android:windowBackground">#0D1B20</item>
+        <item name="cardColor">#15282E</item>
+        <item name="strokeColor">#26434C</item>
+        <item name="trackColor">#223C45</item>
+    </style>
+    <style name="Theme.Launcher.H14">
+        <item name="accentColor">#3789DB</item>
+        <item name="android:colorAccent">#3789DB</item>
+        <item name="bgColor">#0D1620</item>
+        <item name="android:windowBackground">#0D1620</item>
+        <item name="cardColor">#15212E</item>
+        <item name="strokeColor">#26394C</item>
+        <item name="trackColor">#223445</item>
+    </style>
+    <style name="Theme.Launcher.H15">
+        <item name="accentColor">#3862E0</item>
+        <item name="android:colorAccent">#3862E0</item>
+        <item name="bgColor">#0D1220</item>
+        <item name="android:windowBackground">#0D1220</item>
+        <item name="cardColor">#151B2E</item>
+        <item name="strokeColor">#26304C</item>
+        <item name="trackColor">#222B45</item>
+    </style>
+    <style name="Theme.Launcher.H16">
+        <item name="accentColor">#3838E0</item>
+        <item name="android:colorAccent">#3838E0</item>
+        <item name="bgColor">#0D0D20</item>
+        <item name="android:windowBackground">#0D0D20</item>
+        <item name="cardColor">#15152E</item>
+        <item name="strokeColor">#26264C</item>
+        <item name="trackColor">#222245</item>
+    </style>
+    <style name="Theme.Launcher.H17">
+        <item name="accentColor">#6238E0</item>
+        <item name="android:colorAccent">#6238E0</item>
+        <item name="bgColor">#120D20</item>
+        <item name="android:windowBackground">#120D20</item>
+        <item name="cardColor">#1B152E</item>
+        <item name="strokeColor">#30264C</item>
+        <item name="trackColor">#2B2245</item>
+    </style>
+    <style name="Theme.Launcher.H18">
+        <item name="accentColor">#8C38E0</item>
+        <item name="android:colorAccent">#8C38E0</item>
+        <item name="bgColor">#160D20</item>
+        <item name="android:windowBackground">#160D20</item>
+        <item name="cardColor">#21152E</item>
+        <item name="strokeColor">#39264C</item>
+        <item name="trackColor">#342245</item>
+    </style>
+    <style name="Theme.Launcher.H19">
+        <item name="accentColor">#B638E0</item>
+        <item name="android:colorAccent">#B638E0</item>
+        <item name="bgColor">#1B0D20</item>
+        <item name="android:windowBackground">#1B0D20</item>
+        <item name="cardColor">#28152E</item>
+        <item name="strokeColor">#43264C</item>
+        <item name="trackColor">#3C2245</item>
+    </style>
+    <style name="Theme.Launcher.H20">
+        <item name="accentColor">#E038E0</item>
+        <item name="android:colorAccent">#E038E0</item>
+        <item name="bgColor">#200D20</item>
+        <item name="android:windowBackground">#200D20</item>
+        <item name="cardColor">#2E152E</item>
+        <item name="strokeColor">#4C264C</item>
+        <item name="trackColor">#452245</item>
+    </style>
+    <style name="Theme.Launcher.H21">
+        <item name="accentColor">#E038B6</item>
+        <item name="android:colorAccent">#E038B6</item>
+        <item name="bgColor">#200D1B</item>
+        <item name="android:windowBackground">#200D1B</item>
+        <item name="cardColor">#2E1528</item>
+        <item name="strokeColor">#4C2643</item>
+        <item name="trackColor">#45223C</item>
+    </style>
+    <style name="Theme.Launcher.H22">
+        <item name="accentColor">#E0388C</item>
+        <item name="android:colorAccent">#E0388C</item>
+        <item name="bgColor">#200D16</item>
+        <item name="android:windowBackground">#200D16</item>
+        <item name="cardColor">#2E1521</item>
+        <item name="strokeColor">#4C2639</item>
+        <item name="trackColor">#452234</item>
+    </style>
+    <style name="Theme.Launcher.H23">
+        <item name="accentColor">#E03862</item>
+        <item name="android:colorAccent">#E03862</item>
+        <item name="bgColor">#200D12</item>
+        <item name="android:windowBackground">#200D12</item>
+        <item name="cardColor">#2E151B</item>
+        <item name="strokeColor">#4C2630</item>
+        <item name="trackColor">#45222B</item>
+    </style>
+</resources>

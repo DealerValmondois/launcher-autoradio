@@ -44,7 +44,7 @@ public class TripActivity extends Activity {
 
             values[i] = new TextView(this);
             values[i].setTextColor(getColor(R.color.text));
-            values[i].setTextSize(40);
+            values[i].setTextSize(32);
             values[i].getPaint().setFakeBoldText(true);
             card.addView(values[i]);
 
@@ -73,6 +73,7 @@ public class TripActivity extends Activity {
     }
 
     void show() {
+        findViewById(R.id.trace).invalidate();
         values[0].setText(String.format(Locale.FRANCE, "%.1f km", Trip.meters / 1000));
         values[1].setText(hm(SystemClock.elapsedRealtime() - Trip.startMs));
         values[2].setText(hm(Trip.movingMs));
