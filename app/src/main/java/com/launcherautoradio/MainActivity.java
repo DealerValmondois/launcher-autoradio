@@ -80,6 +80,9 @@ public class MainActivity extends Activity {
         access = findViewById(R.id.access);
 
         am = getSystemService(AudioManager.class);
+        try { // show the build number so it's easy to tell which version is installed
+            ((TextView) findViewById(R.id.update)).append(" · v" + getPackageManager().getPackageInfo(getPackageName(), 0).versionCode);
+        } catch (Exception ignored) {}
         findViewById(R.id.update).setOnClickListener(v -> update());
         findViewById(R.id.update).setOnLongClickListener(v -> { exportCanApk(); return true; });
         for (int i = 0; i < KEYS.length; i++) {
