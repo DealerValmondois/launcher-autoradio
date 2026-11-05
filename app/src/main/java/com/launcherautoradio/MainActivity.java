@@ -15,8 +15,6 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
@@ -32,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.Locale;
 
 public class MainActivity extends Activity implements LocationListener {
     static final String APK_URL = "https://github.com/DealerValmondois/launcher-autoradio/releases/download/latest/app-debug.apk";
@@ -44,10 +41,6 @@ public class MainActivity extends Activity implements LocationListener {
     Location last;
     float tripMeters;
     SpeedGauge speed;
-    TextView outside, rpm;
-    final JancarCar car = new JancarCar();
-    final Handler poll = new Handler(Looper.getMainLooper());
-    boolean carSpeed, carErrorShown;
     CompassTape heading;
     Odometer trip;
     Chronometer duration;
@@ -64,9 +57,6 @@ public class MainActivity extends Activity implements LocationListener {
         trip = findViewById(R.id.trip);
         duration = findViewById(R.id.duration);
         locAccess = findViewById(R.id.loc_access);
-        outside = findViewById(R.id.outside);
-        rpm = findViewById(R.id.rpm);
-        if (car.bind(this)) poll.post(this::readCar);
 
         try { // show the build number so it's easy to tell which version is installed
             ((TextView) findViewById(R.id.update)).append(" · v" + getPackageManager().getPackageInfo(getPackageName(), 0).versionCode);
@@ -103,8 +93,6 @@ public class MainActivity extends Activity implements LocationListener {
     protected void onDestroy() {
         super.onDestroy();
         lm.removeUpdates(this);
-        poll.removeCallbacksAndMessages(null);
-        unbindService(car);
     }
 
     // --- GPS: speed, heading, trip ---
@@ -143,7 +131,7 @@ public class MainActivity extends Activity implements LocationListener {
     @Override
     public void onLocationChanged(Location l) {
         float kmh = l.hasSpeed() ? l.getSpeed() * 3.6f : 0;
-        if (!carSpeed) speed.setSpeed(kmh); // the car's own speed wins when the CAN-bus provides it
+        speed.setSpeed(kmh);
         if (l.hasBearing() && kmh > 5) heading.setBearing(l.getBearing());
         // Count distance only when moving with a decent fix, so GPS jitter while parked adds nothing.
         if (last != null && kmh > 3 && l.getAccuracy() < 30) tripMeters += last.distanceTo(l);
@@ -155,25 +143,6 @@ public class MainActivity extends Activity implements LocationListener {
     @Override public void onProviderEnabled(String p) {}
     @Override public void onProviderDisabled(String p) {}
     @Override public void onStatusChanged(String p, int s, Bundle e) {}
-
-    // --- Car data from the CAN-bus (Jancar service), polled every second ---
-
-    void readCar() {
-        if (car.connected()) {
-            try {
-                float t = car.outsideTempC(), r = car.realTimeInfo(JancarCar.ENGINE_RPM), v = car.realTimeInfo(JancarCar.SPEED);
-                outside.setText(String.format(Locale.FRANCE, "%.1f °C", t));
-                rpm.setText(Math.round(r) + " tr/min");
-                carSpeed = true;
-                speed.setSpeed(v);
-            } catch (Exception e) {
-                carSpeed = false;
-                if (!carErrorShown) Toast.makeText(this, "Données voiture indisponibles : " + e, Toast.LENGTH_LONG).show();
-                carErrorShown = true;
-            }
-        }
-        poll.postDelayed(this::readCar, 1000);
-    }
 
     // --- Tiles ---
 
