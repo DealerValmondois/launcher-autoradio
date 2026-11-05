@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:padding="28dp"
+    android:background="@color/bg">
+
+    <com.launcherautoradio.StopwatchDial
+        android:id="@+id/dial"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="36dp"
+        android:orientation="vertical">
+        <Button
+            android:id="@+id/back"
+            android:layout_width="160dp"
+            android:layout_height="64dp"
+            android:background="@drawable/tile"
+            android:drawableStart="@drawable/ic_prev"
+            android:paddingStart="20dp"
+            android:paddingEnd="24dp"
+            android:text="Retour"
+            android:textAllCaps="false"
+            android:textColor="@color/text"
+            android:textSize="22sp"
+            android:stateListAnimator="@null" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="0 – 100 km/h"
+            android:textColor="@color/accent"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0,00 s"
+            android:textColor="@color/text"
+            android:textSize="88sp"
+            android:textStyle="bold"
+            android:fontFeatureSettings="tnum" />
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text"
+            android:textSize="24sp" />
+        <TextView
+            android:id="@+id/speed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/muted"
+            android:textSize="20sp" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+        <TextView
+            android:id="@+id/best"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true"
+            android:textColor="#F59E0B"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Maintenir le record pour l'effacer · mesure GPS, à faire sur route dégagée"
+            android:textColor="@color/muted"
+            android:textSize="14sp" />
+    </LinearLayout>
+</LinearLayout>

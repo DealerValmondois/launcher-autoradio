@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="28dp"
+    android:background="@color/bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <Button
+            android:id="@+id/back"
+            android:layout_width="160dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/tile"
+            android:drawableStart="@drawable/ic_prev"
+            android:paddingStart="20dp"
+            android:paddingEnd="24dp"
+            android:text="Retour"
+            android:textAllCaps="false"
+            android:textColor="@color/text"
+            android:textSize="22sp"
+            android:stateListAnimator="@null" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="24dp"
+            android:text="Trajet en cours"
+            android:textColor="@color/text"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+        <Button
+            android:id="@+id/reset"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/tile"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:text="Remettre à zéro"
+            android:textAllCaps="false"
+            android:textColor="@color/text"
+            android:textSize="20sp"
+            android:stateListAnimator="@null" />
+    </LinearLayout>
+
+    <GridLayout
+        android:id="@+id/grid"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="14dp"
+        android:columnCount="3"
+        android:rowCount="2" />
+</LinearLayout>

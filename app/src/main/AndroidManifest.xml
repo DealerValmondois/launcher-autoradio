@@ -29,6 +29,14 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".TripActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape" />
+        <activity
+            android:name=".AccelActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape" />
+        <activity
             android:name=".AppsActivity"
             android:exported="false"
             android:screenOrientation="sensorLandscape" />
