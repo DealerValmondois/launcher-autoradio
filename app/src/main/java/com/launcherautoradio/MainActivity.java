@@ -6,6 +6,8 @@ import android.content.pm.PackageInstaller;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentValues;
+import android.provider.MediaStore;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -26,6 +28,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -77,6 +81,7 @@ public class MainActivity extends Activity {
 
         am = getSystemService(AudioManager.class);
         findViewById(R.id.update).setOnClickListener(v -> update());
+        findViewById(R.id.update).setOnLongClickListener(v -> { exportCanApk(); return true; });
         for (int i = 0; i < KEYS.length; i++) {
             final int k = i;
             findViewById(TILES[k]).setOnClickListener(v -> launch(k));
@@ -174,8 +179,7 @@ public class MainActivity extends Activity {
                 int id = pi.createSession(new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL));
                 PackageInstaller.Session session = pi.openSession(id);
                 try (InputStream in = new URL(APK_URL).openStream(); OutputStream out = session.openWrite("apk", 0, -1)) {
-                    byte[] buf = new byte[65536];
-                    for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+                    copy(in, out);
                     session.fsync(out);
                 }
                 Intent status = new Intent(this, MainActivity.class).setAction("install");
@@ -188,6 +192,28 @@ public class MainActivity extends Activity {
                 updating = false;
             }
         }).start();
+    }
+
+    static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buf = new byte[65536];
+        for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+    }
+
+    // Copies the CAN-bus app's APK to Download/ so it can be analysed to find how it shares car data.
+    void exportCanApk() {
+        if (Build.VERSION.SDK_INT < 29) return;
+        try {
+            String src = getPackageManager().getApplicationInfo("com.can.activity", 0).sourceDir;
+            ContentValues v = new ContentValues();
+            v.put(MediaStore.Downloads.DISPLAY_NAME, "com.can.activity.apk");
+            Uri dst = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+            try (InputStream in = new FileInputStream(src); OutputStream out = getContentResolver().openOutputStream(dst)) {
+                copy(in, out);
+            }
+            Toast.makeText(this, "Copié dans Download : com.can.activity.apk", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Échec : " + e, Toast.LENGTH_LONG).show();
+        }
     }
 
     // Installer result: ask the user to confirm, or report a failure.
