@@ -32,6 +32,19 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
         <Button
+            android:id="@+id/copy_can"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/tile"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:text="Copier appli CAN"
+            android:textAllCaps="false"
+            android:textColor="@color/text"
+            android:textSize="18sp"
+            android:stateListAnimator="@null" />
+        <Button
             android:id="@+id/update"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -66,28 +79,11 @@
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08" />
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal"
-                android:baselineAligned="true">
-                <TextView
-                    android:id="@+id/speed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="—"
-                    android:textColor="@color/text"
-                    android:textSize="96sp"
-                    android:textStyle="bold" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="km/h"
-                    android:textColor="@color/muted"
-                    android:textSize="22sp" />
-            </LinearLayout>
+            <com.launcherautoradio.SpeedGauge
+                android:id="@+id/speed"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginTop="8dp" />
             <Button
                 android:id="@+id/loc_access"
                 android:layout_width="match_parent"

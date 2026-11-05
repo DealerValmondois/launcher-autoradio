@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
@@ -13,11 +14,13 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,7 +37,8 @@ public class MainActivity extends Activity implements LocationListener {
     LocationManager lm;
     Location last;
     float tripMeters;
-    TextView speed, heading, trip;
+    SpeedGauge speed;
+    TextView heading, trip;
     Chronometer duration;
     View locAccess;
     volatile boolean updating;
@@ -54,6 +58,7 @@ public class MainActivity extends Activity implements LocationListener {
             ((TextView) findViewById(R.id.update)).append(" · v" + getPackageManager().getPackageInfo(getPackageName(), 0).versionCode);
         } catch (Exception ignored) {}
         findViewById(R.id.update).setOnClickListener(v -> update());
+        findViewById(R.id.copy_can).setOnClickListener(v -> copyCanApk());
 
         for (int i = 0; i < KEYS.length; i++) {
             final int k = i;
@@ -118,7 +123,7 @@ public class MainActivity extends Activity implements LocationListener {
     @Override
     public void onLocationChanged(Location l) {
         float kmh = l.hasSpeed() ? l.getSpeed() * 3.6f : 0;
-        speed.setText(String.valueOf(Math.round(kmh)));
+        speed.setSpeed(kmh);
         if (l.hasBearing() && kmh > 5) heading.setText(DIRS[Math.round(l.getBearing() / 45f) % 8]);
         // Count distance only when moving with a decent fix, so GPS jitter while parked adds nothing.
         if (last != null && kmh > 3 && l.getAccuracy() < 30) tripMeters += last.distanceTo(l);
@@ -181,6 +186,28 @@ public class MainActivity extends Activity implements LocationListener {
             } finally {
                 updating = false;
             }
+        }).start();
+    }
+
+    // shortcut: temporary button to grab the CAN-bus app for analysis, remove once its data is wired in.
+    void copyCanApk() {
+        Toast.makeText(this, "Tentative de copie…", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            String msg;
+            try {
+                String src = getPackageManager().getApplicationInfo("com.can.activity", 0).sourceDir;
+                ContentValues cv = new ContentValues();
+                cv.put(MediaStore.Downloads.DISPLAY_NAME, "com.can.activity.apk");
+                Uri dst = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv);
+                try (InputStream in = new FileInputStream(src); OutputStream out = getContentResolver().openOutputStream(dst)) {
+                    copy(in, out);
+                }
+                msg = "Copiée dans Download/com.can.activity.apk\n(source : " + src + ")";
+            } catch (Exception e) {
+                msg = "Échec de la copie : " + e;
+            }
+            String text = msg;
+            runOnUiThread(() -> Toast.makeText(this, text, Toast.LENGTH_LONG).show());
         }).start();
     }
 
