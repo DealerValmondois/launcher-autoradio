@@ -19,11 +19,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,7 +38,6 @@ public class MainActivity extends Activity implements LocationListener {
     static final int[] TILES = {R.id.tile_carplay, R.id.tile_music, R.id.tile_phone};
 
     LocationManager lm;
-    static boolean introShown; // once per launcher start, i.e. when the head unit boots
     SpeedGauge speed;
     CompassTape heading;
     Odometer trip;
@@ -88,7 +83,6 @@ public class MainActivity extends Activity implements LocationListener {
         duration.start();
         showTrip();
         if (!startGps()) askLocation();
-        if (!introShown) playIntro();
     }
 
     @Override
@@ -149,38 +143,6 @@ public class MainActivity extends Activity implements LocationListener {
     @Override public void onProviderEnabled(String p) {}
     @Override public void onProviderDisabled(String p) {}
     @Override public void onStatusChanged(String p, int s, Bundle e) {}
-
-    // --- Boot intro: the speedometer sweeps up and back while "Bonne route" fades in ---
-
-    void playIntro() {
-        introShown = true;
-        float dp = getResources().getDisplayMetrics().density;
-        FrameLayout overlay = new FrameLayout(this);
-        overlay.setBackgroundColor(getColor(R.color.bg));
-        LinearLayout box = new LinearLayout(this);
-        box.setOrientation(LinearLayout.VERTICAL);
-        box.setGravity(Gravity.CENTER_HORIZONTAL);
-        SpeedGauge g = new SpeedGauge(this, null);
-        box.addView(g, new LinearLayout.LayoutParams((int) (440 * dp), (int) (330 * dp)));
-        TextView hello = new TextView(this);
-        hello.setText("Bonne route");
-        hello.setTextColor(getColor(R.color.text));
-        hello.setTextSize(36);
-        hello.getPaint().setFakeBoldText(true);
-        hello.setAlpha(0);
-        box.addView(hello);
-        overlay.addView(box, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
-        addContentView(overlay, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-        Runnable end = () -> overlay.animate().alpha(0).setDuration(400).withEndAction(() -> {
-            if (overlay.getParent() != null) ((ViewGroup) overlay.getParent()).removeView(overlay);
-        });
-        overlay.setOnClickListener(v -> end.run()); // tap to skip
-        g.postDelayed(() -> g.setSpeed(200), 200);
-        g.postDelayed(() -> g.setSpeed(0), 1100);
-        hello.animate().alpha(1).setStartDelay(900).setDuration(600);
-        overlay.postDelayed(end, 2600);
-    }
 
     // --- Tiles ---
 
