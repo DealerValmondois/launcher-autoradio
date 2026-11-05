@@ -14,6 +14,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import java.util.Collections;
 import java.util.List;
 
@@ -97,6 +98,11 @@ public class AppsActivity extends Activity {
                 tile.addView(label);
 
                 tile.setOnClickListener(v -> open(r));
+                // Long press shows the package name (needed to integrate another app's data).
+                tile.setOnLongClickListener(v -> {
+                    Toast.makeText(this, r.activityInfo.packageName, Toast.LENGTH_LONG).show();
+                    return true;
+                });
                 GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
                 lp.width = tileW;
                 lp.height = tileH;

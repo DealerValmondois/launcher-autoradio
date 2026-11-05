@@ -1,7 +1,8 @@
 package com.launcherautoradio;
 
 import android.app.Activity;
-import android.app.DownloadManager;
+import android.app.PendingIntent;
+import android.content.pm.PackageInstaller;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -25,13 +26,14 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.List;
 
 public class MainActivity extends Activity {
     // Tiles whose app the user picks; index = request code.
     static final String APK_URL = "https://github.com/DealerValmondois/launcher-autoradio/releases/download/latest/app-debug.apk";
-    static final String APK_MIME = "application/vnd.android.package-archive";
     static final String[] KEYS = {"carplay", "music", "phone"};
     static final int[] TILES = {R.id.tile_carplay, R.id.tile_music, R.id.tile_phone};
 
@@ -45,19 +47,7 @@ public class MainActivity extends Activity {
     AudioManager am;
     String bTitle, bArtist; // from legacy "metachanged" broadcasts, used when no media session exists
 
-    DownloadManager dm;
-    long downloadId = -1;
-
-    final BroadcastReceiver downloaded = new BroadcastReceiver() {
-        @Override public void onReceive(Context c, Intent i) {
-            if (i.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -2) != downloadId) return;
-            Uri apk = dm.getUriForDownloadedFile(downloadId); // null if the download failed
-            downloadId = -1;
-            if (apk == null) { Toast.makeText(c, "Échec du téléchargement", Toast.LENGTH_LONG).show(); return; }
-            open(new Intent(Intent.ACTION_VIEW).setDataAndType(apk, APK_MIME)
-                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK));
-        }
-    };
+    volatile boolean updating;
 
     final BroadcastReceiver meta = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
@@ -86,10 +76,6 @@ public class MainActivity extends Activity {
         access = findViewById(R.id.access);
 
         am = getSystemService(AudioManager.class);
-        dm = getSystemService(DownloadManager.class);
-        IntentFilter done = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        if (Build.VERSION.SDK_INT >= 33) registerReceiver(downloaded, done, Context.RECEIVER_EXPORTED);
-        else registerReceiver(downloaded, done);
         findViewById(R.id.update).setOnClickListener(v -> update());
         for (int i = 0; i < KEYS.length; i++) {
             final int k = i;
@@ -177,20 +163,42 @@ public class MainActivity extends Activity {
         play.setImageResource(isPlaying() ? R.drawable.ic_pause : R.drawable.ic_play);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(downloaded);
+    // Streams the latest APK straight into the system installer (DownloadManager is often missing on head units).
+    void update() {
+        if (updating) return;
+        updating = true;
+        Toast.makeText(this, "Téléchargement de la mise à jour…", Toast.LENGTH_LONG).show();
+        new Thread(() -> {
+            try {
+                PackageInstaller pi = getPackageManager().getPackageInstaller();
+                int id = pi.createSession(new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL));
+                PackageInstaller.Session session = pi.openSession(id);
+                try (InputStream in = new URL(APK_URL).openStream(); OutputStream out = session.openWrite("apk", 0, -1)) {
+                    byte[] buf = new byte[65536];
+                    for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+                    session.fsync(out);
+                }
+                Intent status = new Intent(this, MainActivity.class).setAction("install");
+                session.commit(PendingIntent.getActivity(this, 0, status,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE).getIntentSender());
+                session.close();
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(this, "Échec de la mise à jour : " + e.getMessage(), Toast.LENGTH_LONG).show());
+            } finally {
+                updating = false;
+            }
+        }).start();
     }
 
-    void update() {
-        if (downloadId != -1) return; // already downloading
-        new File(getExternalFilesDir(null), "update.apk").delete();
-        downloadId = dm.enqueue(new DownloadManager.Request(Uri.parse(APK_URL))
-                .setMimeType(APK_MIME)
-                .setTitle("Launcher Auto")
-                .setDestinationInExternalFilesDir(this, null, "update.apk"));
-        Toast.makeText(this, "Téléchargement de la mise à jour…", Toast.LENGTH_LONG).show();
+    // Installer result: ask the user to confirm, or report a failure.
+    @Override
+    protected void onNewIntent(Intent i) {
+        super.onNewIntent(i);
+        if (!"install".equals(i.getAction())) return;
+        int st = i.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE);
+        if (st == PackageInstaller.STATUS_PENDING_USER_ACTION) open((Intent) i.getParcelableExtra(Intent.EXTRA_INTENT));
+        else if (st != PackageInstaller.STATUS_SUCCESS)
+            Toast.makeText(this, "Échec : " + i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE), Toast.LENGTH_LONG).show();
     }
 
     void launch(int k) {
