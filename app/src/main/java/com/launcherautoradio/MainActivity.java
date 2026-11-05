@@ -25,20 +25,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.Locale;
 
 public class MainActivity extends Activity implements LocationListener {
     static final String APK_URL = "https://github.com/DealerValmondois/launcher-autoradio/releases/download/latest/app-debug.apk";
     // Tiles whose app the user picks; index = request code.
     static final String[] KEYS = {"carplay", "music", "phone"};
     static final int[] TILES = {R.id.tile_carplay, R.id.tile_music, R.id.tile_phone};
-    static final String[] DIRS = {"N", "NE", "E", "SE", "S", "SO", "O", "NO"};
 
     LocationManager lm;
     Location last;
     float tripMeters;
     SpeedGauge speed;
-    TextView heading, trip;
+    CompassTape heading;
+    Odometer trip;
     Chronometer duration;
     View locAccess;
     volatile boolean updating;
@@ -68,7 +67,11 @@ public class MainActivity extends Activity implements LocationListener {
         findViewById(R.id.tile_nav).setOnClickListener(v -> open(new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="))));
         findViewById(R.id.tile_apps).setOnClickListener(v -> open(new Intent(this, AppsActivity.class)));
         findViewById(R.id.tile_settings).setOnClickListener(v -> open(new Intent(Settings.ACTION_SETTINGS)));
-        findViewById(R.id.reset).setOnClickListener(v -> resetTrip());
+        trip.setOnLongClickListener(v -> {
+            resetTrip();
+            Toast.makeText(this, "Trajet remis à zéro", Toast.LENGTH_SHORT).show();
+            return true;
+        });
         locAccess.setOnClickListener(v -> askLocation());
 
         resetTrip();
@@ -117,14 +120,14 @@ public class MainActivity extends Activity implements LocationListener {
     }
 
     void showTrip() {
-        trip.setText(String.format(Locale.FRANCE, "%.1f km", tripMeters / 1000));
+        trip.setValue(tripMeters / 1000);
     }
 
     @Override
     public void onLocationChanged(Location l) {
         float kmh = l.hasSpeed() ? l.getSpeed() * 3.6f : 0;
         speed.setSpeed(kmh);
-        if (l.hasBearing() && kmh > 5) heading.setText(DIRS[Math.round(l.getBearing() / 45f) % 8]);
+        if (l.hasBearing() && kmh > 5) heading.setBearing(l.getBearing());
         // Count distance only when moving with a decent fix, so GPS jitter while parked adds nothing.
         if (last != null && kmh > 3 && l.getAccuracy() < 30) tripMeters += last.distanceTo(l);
         last = l;
@@ -203,7 +206,7 @@ public class MainActivity extends Activity implements LocationListener {
                     copy(in, out);
                 }
                 msg = "Copiée dans Download/com.can.activity.apk\n(source : " + src + ")";
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 msg = "Échec de la copie : " + e;
             }
             String text = msg;
