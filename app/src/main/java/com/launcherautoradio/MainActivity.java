@@ -71,6 +71,12 @@ public class MainActivity extends Activity implements LocationListener {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        AppsActivity.preload(this); // keeps the app list ready (and fresh after installs) for an instant Applis menu
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         lm.removeUpdates(this);

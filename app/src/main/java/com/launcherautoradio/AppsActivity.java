@@ -21,14 +21,37 @@ import android.widget.Toast;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
+import android.content.Context;
+import android.graphics.drawable.Drawable;
+import java.util.ArrayList;
 import java.util.List;
 
 // App drawer in swipeable pages of big tiles. With extra "pick", returns the chosen package instead of launching it.
 public class AppsActivity extends Activity {
     static final int COLS = 5, ROWS = 2, PER_PAGE = COLS * ROWS;
 
-    List<ResolveInfo> apps;
+    static class App {
+        final ResolveInfo r; final CharSequence label; final Drawable icon;
+        App(ResolveInfo r, CharSequence label, Drawable icon) { this.r = r; this.label = label; this.icon = icon; }
+    }
+    static volatile List<App> cache;
+
+    // Labels and icons are slow to load on head units, so the launcher preloads them in the background.
+    static List<App> load(Context c) {
+        PackageManager pm = c.getPackageManager();
+        List<App> out = new ArrayList<>();
+        for (ResolveInfo r : pm.queryIntentActivities(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0))
+            if (!r.activityInfo.packageName.equals(c.getPackageName())) out.add(new App(r, r.loadLabel(pm), r.loadIcon(pm)));
+        out.sort((x, y) -> x.label.toString().compareToIgnoreCase(y.label.toString()));
+        return cache = out;
+    }
+
+    static void preload(Context c) {
+        Context app = c.getApplicationContext();
+        new Thread(() -> load(app)).start();
+    }
+
+    List<App> apps;
     boolean pick;
     HorizontalScrollView pager;
     TextView dots;
@@ -40,9 +63,7 @@ public class AppsActivity extends Activity {
         super.onCreate(b);
         setContentView(R.layout.activity_apps);
         PackageManager pm = getPackageManager();
-        apps = pm.queryIntentActivities(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0);
-        apps.removeIf(r -> r.activityInfo.packageName.equals(getPackageName()));
-        Collections.sort(apps, new ResolveInfo.DisplayNameComparator(pm));
+        apps = cache != null ? cache : load(this);
         pick = getIntent().getBooleanExtra("pick", false);
 
         ((TextView) findViewById(R.id.header)).setText(pick ? "Choisis une appli" : "Applis");
@@ -79,7 +100,8 @@ public class AppsActivity extends Activity {
             grid.setPadding(gap / 2, 0, gap / 2, 0);
             pages.addView(grid, new LinearLayout.LayoutParams(pageW, h));
             for (int i = p * PER_PAGE; i < Math.min(apps.size(), (p + 1) * PER_PAGE); i++) {
-                ResolveInfo r = apps.get(i);
+                App app = apps.get(i);
+                ResolveInfo r = app.r;
                 LinearLayout tile = new LinearLayout(this);
                 tile.setOrientation(LinearLayout.VERTICAL);
                 tile.setGravity(Gravity.CENTER);
@@ -89,12 +111,12 @@ public class AppsActivity extends Activity {
                 tile.setFocusable(true);
 
                 ImageView img = new ImageView(this);
-                img.setImageDrawable(r.loadIcon(pm));
+                img.setImageDrawable(app.icon);
                 img.setImportantForAccessibility(ImageView.IMPORTANT_FOR_ACCESSIBILITY_NO);
                 tile.addView(img, new LinearLayout.LayoutParams(icon, icon));
 
                 TextView label = new TextView(this);
-                label.setText(r.loadLabel(pm));
+                label.setText(app.label);
                 label.setTextColor(getColor(R.color.text));
                 label.setTextSize(18);
                 label.setGravity(Gravity.CENTER);
